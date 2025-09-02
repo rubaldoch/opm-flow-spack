@@ -29,35 +29,41 @@ class DuneGrid(CMakePackage):
     homepage = "https://www.dune-project.org"
     url = "https://www.dune-project.org/download/2.10.0/dune-grid-2.10.0.tar.gz"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
+    maintainers("rubaldoch")
 
-    # FIXME: Add the SPDX identifier of the project's license below.
-    # See https://spdx.org/licenses/ for a list. Upon manually verifying
-    # the license, set checked_by to your Github username.
     license("GPL-2.0-or-later", checked_by="rubaldoch")
 
     version("2.10.0", sha256="2feb7c16d75048a80c570773431c587f6d14a4f9fabf7f1ad0a3fbacc7330056")
 
+    variant('mpi', default=True, description='Build with MPI.')
+    variant("scotch", default=True, description="With scotch/ptscotch decomposition")
+    variant("suitesparse", default=True, description="With SuiteSparse support")
+    variant("metis", default=True, description="With METIS support")
+    variant("parmetis", default=True, description="With PARMETIS support")
+    variant("gmp", default=True, description="With GMP support")
+    variant("superlu", default=True, description="With SuperLU support")
+    variant("docs", default=False, description="With documentation support")
+    # Dependencies
+
+    depends_on("cmake@3.16:", type="build")
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
-
-    depends_on("openmpi", type="build")
-    depends_on("openblas", type="build")
-    depends_on("suite-sparse", type="build")
-    depends_on("metis", type="build")
-    depends_on("parmetis", type="build")
-    depends_on("gmp", type="build")
+    depends_on("fortran", type="build")
+    depends_on("flexiblas")
     
-    depends_on("dune-common", type="build")
-    depends_on("dune-geometry", type="build")
+    # Optional dependencies
+    depends_on("mpi", when="+mpi")
+    depends_on("metis@5.0:", when="+metis")
+    depends_on("parmetis@4.0:", when="+parmetis")
+    depends_on("suite-sparse", when="+suitesparse")
+    depends_on("gmp", when="+gmp")
+    depends_on("superlu@5.0:", when="+superlu")
+    depends_on("scotch", when="+scotch")
+    depends_on("texlive", when="+docs")
 
-# FIXME: Add dependencies if required.
-    # depends_on("foo")
+    depends_on("dune-common")
+    depends_on("dune-geometry")
 
     def cmake_args(self):
-        # FIXME: Add arguments other than
-        # FIXME: CMAKE_INSTALL_PREFIX and CMAKE_BUILD_TYPE
-        # FIXME: If not needed delete this function
         args = []
         return args

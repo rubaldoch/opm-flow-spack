@@ -20,31 +20,41 @@
 # ----------------------------------------------------------------------------
 
 from spack_repo.builtin.build_systems.cmake import CMakePackage
+from spack_repo.builtin.packages.boost.package import Boost
 from spack.package import *
 
 
 class OpmCommon(CMakePackage):
     """Tools for Eclipse reservoir simulation files."""
 
-    # FIXME: Add a proper url for your package's homepage here.
     homepage = "https://opm-project.org"
     url = "https://github.com/OPM/opm-common/archive/refs/tags/release/2025.04/final.tar.gz"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
+    maintainers("rubaldoch")
 
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
     version("2025.04", sha256="47dd88683babe0dd7cf7309d77a0499e4033cb0d2741d9a5ff9d3d7ac23b9f3d")
     
-    # Define dependencies
-    depends_on("cxx", type="build")
-    depends_on("cmake", type="build")
+    # Configuration variants
+    variant(
+        "build_type",
+        default="Release",
+        description="The build type to build",
+        values=("Debug", "Release", "DebugRelease"),
+    )
+    variant("dune", default=True, description="Build with Dune support")
 
-    depends_on("openblas")
-    depends_on("boost@1.72.0 + test + system + date_time")
-    depends_on("dune-common")
+    # Define dependencies
+    depends_on('cmake@3.10:', type="build")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
+    depends_on("flexiblas")
+    depends_on(Boost.with_default_variants)
+
+    depends_on("dune-common", when="+dune")
     
     def cmake_args(self):
         args = []

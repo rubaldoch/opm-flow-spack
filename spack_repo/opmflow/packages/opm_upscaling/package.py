@@ -20,6 +20,7 @@
 # ----------------------------------------------------------------------------
 
 from spack_repo.builtin.build_systems.cmake import CMakePackage
+from spack_repo.builtin.packages.boost.package import Boost
 from spack.package import *
 
 
@@ -29,21 +30,20 @@ class OpmUpscaling(CMakePackage):
     homepage = "https://opm-project.org"
     url = "https://github.com/OPM/opm-upscaling/archive/refs/tags/release/2025.04/final.tar.gz"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
+    maintainers("rubaldoch")
     
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
     version("2025.04", sha256="8ba85d00606feb793ce23c77fde798f907ab72dc31d309c22cc0f0e135e162e2")
 
     # Define dependencies
-    depends_on("cmake", type="build")
+    depends_on('cmake@3.10:', type="build")
+    depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
-    depends_on("openblas")
-    depends_on("boost+test+atomic+mpi+system+date_time")
+    depends_on("flexiblas")
+    depends_on(Boost.with_default_variants)
     depends_on("suite-sparse")
     depends_on("zoltan")
     

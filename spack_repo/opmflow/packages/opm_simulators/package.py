@@ -20,52 +20,81 @@
 # ----------------------------------------------------------------------------
 
 from spack_repo.builtin.build_systems.cmake import CMakePackage
+from spack_repo.builtin.build_systems.cuda import CudaPackage
+from spack_repo.builtin.packages.boost.package import Boost
 from spack.package import *
 
 
-class OpmSimulators(CMakePackage):
+class OpmSimulators(CMakePackage, CudaPackage):
     """OPM Flow and experimental simulators, including components such as well models etc."""
 
     homepage = "https://opm-project.org"
     url = "https://github.com/OPM/opm-simulators/archive/refs/tags/release/2025.04/final.tar.gz"
+    git = "https://github.com/OPM/opm-simulators.git"
 
-    # FIXME: Add a list of GitHub accounts to
-    # notify when the package is updated.
-    # maintainers("github_user1", "github_user2")
-
+    maintainers("rubaldoch")
+    
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
     version("2025.04", sha256="02aa85b82c843ecde2640b6e9bdbfa1a5026fd46ee1fb564284784e5c359d233")
+
+    # Configuration variants
+    variant(
+        "build_type",
+        default="Release",
+        description="The build type to build",
+        values=("Debug", "Release", "DebugRelease"),
+    )
     
-    # Variants
     variant('mpi', default=True, description='Build with MPI.')
-    variant('cuda', default=True, description='Build with CUDA support.')
-
-    # Define dependencies
-    depends_on("cmake", type="build")
-    depends_on("cxx", type="build")
-
-    depends_on("openblas")
-    depends_on("boost+test+atomic+mpi+system+date_time")
-    depends_on("suite-sparse")
+    variant('gpubridge', default=False, description='Build with CUDA GPU-bridge support.')
+    variant('opencl', default=False, description='Build with OpenCL support.')
+    variant('native', default=False, description='Enable CPU-specific optimizations?')
+    variant('doc', default=False, description='Compile with documentation')
+ 
+    variant("python", default=False, description="Compile with Python bindings")
     
+    # Define dependencies
+    depends_on('cmake@3.10:', type="build")
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
+    depends_on("fortran", type="build")
+
+    depends_on("flexiblas")
+    depends_on(Boost.with_default_variants)
+    depends_on("suite-sparse")
+
     depends_on("dune-common")
     depends_on("dune-istl")
     depends_on("dune-grid")
     depends_on("dune-geometry")
-    
+
     depends_on("opm-common")
     depends_on("opm-grid")
 
+    depends_on('cuda@12.6.2', when='+cuda')
+    
     # Optional dependencies
     depends_on('mpi', when='+mpi')
-    depends_on('cuda@12.6.2', when='+cuda')
+    depends_on("python", when="+python")
 
     def cmake_args(self):
+        spec = self.spec
         args = [
-            f"-DUSE_OPENCL=OFF",
-            f"-DUSE_GPU_BRIDGE=OFF",
-            f"-DCMAKE_BUILD_TYPE=Release",
-            f"-DWITH_NATIVE=OFF",
+            self.define_from_variant("DUSE_OPENCL", "opencl"),
+            self.define_from_variant("DUSE_GPU_BRIDGE", "gpubridge"),
+            self.define_from_variant("DWITH_NATIVE", "native"),
         ]
+
+        # if spec.satisfies("+cuda"):
+        #     # Set up the CUDA macros needed by the build
+        #     args.append("-DWITH_CUDA=ON")
+        #     cuda_arch_list = spec.variants["cuda_arch"].value
+        #     cuda_arch = cuda_arch_list[0]
+        #     if cuda_arch != "none":
+        #         args.append(f"-DCUDA_FLAGS=-arch=sm_{cuda_arch}")
+        # else:
+        #     # Ensure build with CUDA is disabled
+        #     args.append("-DWITH_CUDA=OFF")
         return args
+
