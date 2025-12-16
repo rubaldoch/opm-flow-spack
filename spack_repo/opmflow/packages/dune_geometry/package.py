@@ -30,11 +30,12 @@ class DuneGeometry(CMakePackage):
 
     homepage = "https://www.dune-project.org"
     url = "https://www.dune-project.org/download/2.10.0/dune-geometry-2.10.0.tar.gz"
+    git = "https://gitlab.dune-project.org/core/dune-geometry.git"
 
     maintainers("rubaldoch")
     license("GPL-2.0-or-later", checked_by="rubaldoch")
 
-    version("2.10.0", sha256="28e98ac930477e0c93e41d0bec74c472e48b9e9f11f16a07befb8791568b7303")
+    version("2.10.0", commit="5673e95ac364ad3498aed9eaf65e0d224384d15a")
 
     variant('mpi', default=True, description='Build with MPI.')
     variant("scotch", default=True, description="With scotch/ptscotch decomposition")

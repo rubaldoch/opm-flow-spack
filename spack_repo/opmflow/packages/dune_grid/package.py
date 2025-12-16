@@ -28,12 +28,13 @@ class DuneGrid(CMakePackage):
 
     homepage = "https://www.dune-project.org"
     url = "https://www.dune-project.org/download/2.10.0/dune-grid-2.10.0.tar.gz"
+    git = "https://gitlab.dune-project.org/core/dune-grid.git"
 
     maintainers("rubaldoch")
 
     license("GPL-2.0-or-later", checked_by="rubaldoch")
 
-    version("2.10.0", sha256="2feb7c16d75048a80c570773431c587f6d14a4f9fabf7f1ad0a3fbacc7330056")
+    version("2.10.0", commit="954436b88247e904628ec4d7c8bb7b2eaac08900")
 
     variant('mpi', default=True, description='Build with MPI.')
     variant("scotch", default=True, description="With scotch/ptscotch decomposition")

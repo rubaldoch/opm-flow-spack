@@ -28,12 +28,13 @@ class DuneCommon(CMakePackage):
 
     homepage = "https://www.dune-project.org"
     url = "https://www.dune-project.org/download/2.10.0/dune-common-2.10.0.tar.gz"
+    git = "https://gitlab.dune-project.org/core/dune-common.git"
 
     maintainers("rubaldoch")
 
     license("GPL-2.0-or-later", checked_by="rubaldoch")
 
-    version("2.10.0", sha256="94c0dc8ccbb870a17b308368f0cc939f071cc74afb8759f5a90e9cb23aedafdd")
+    version("2.10.0", commit="fdca6064ba6d15e7acd810aaa53df3d4fbde866c")
     
     variant(
         "build_type",

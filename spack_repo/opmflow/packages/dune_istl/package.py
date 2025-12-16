@@ -29,12 +29,13 @@ class DuneIstl(CMakePackage):
 
     homepage = "https://www.dune-project.org"
     url = "https://www.dune-project.org/download/2.10.0/dune-istl-2.10.0.tar.gz"
+    git = "https://gitlab.dune-project.org/core/dune-istl.git"
 
     maintainers("rubaldoch")
 
     license("GPL-2.0-or-later", checked_by="rubaldoch")
 
-    version("2.10.0", sha256="6c39e9fcf97fcd54c158e61d0b67a7422f9fc528540262df58f71d24672e6966")
+    version("2.10.0", commit="21c67275b17e93918365177f93f42e4aaa9afd23")
 
     variant('mpi', default=True, description='Build with MPI.')
     variant("scotch", default=True, description="With scotch/ptscotch decomposition")
