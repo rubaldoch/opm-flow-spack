@@ -47,20 +47,25 @@ class OpmSimulators(CMakePackage, CudaPackage):
     )
     
     variant('mpi', default=True, description='Build with MPI.')
-    variant('gpubridge', default=False, description='Build with CUDA GPU-bridge support.')
-    variant('opencl', default=False, description='Build with OpenCL support.')
-    variant('native', default=False, description='Enable CPU-specific optimizations?')
-    variant('doc', default=False, description='Compile with documentation')
- 
+    variant('cuda', default=True, description='Build with CUDA.')
     variant("python", default=False, description="Compile with Python bindings")
+    variant('chow_patel_ilu', default=False, description='Build with Chow-Patel ILU')
+    variant('chow_patel_ilu_gpu', default=False, description='Build with Chow-Patel ILU on GPU.')
+    variant('chow_patel_ilu_gpu_parallel', default=False, description='Try to use more parallelism on the GPU during Chow-Patel ILU decomposition?')
+    variant('gpu_bridge', default=True, description='Build with GPU bridge (GPU/AMGCL solvers).')
+    variant('amgx', default=False, description= 'Build with AMGX  support')
+    variant('opencl', default=True, description='Build with OpenCL support.')
+    variant('gpu_istl', default=True, description='Build with GPU bridge (GPU/AMGCL solvers).')
+    variant('doc', default=False, description='Compile with documentation')
     
+
     # Define dependencies
     depends_on('cmake@3.10:', type="build")
     depends_on("c", type="build")
     depends_on("cxx", type="build")
     depends_on("fortran", type="build")
 
-    depends_on("flexiblas")
+    depends_on("openblas")
     depends_on(Boost.with_default_variants)
     depends_on("suite-sparse")
 
@@ -71,20 +76,35 @@ class OpmSimulators(CMakePackage, CudaPackage):
 
     depends_on("opm-common")
     depends_on("opm-grid")
-
-    depends_on('cuda@12.6.2', when='+cuda')
-    
+  
     # Optional dependencies
     depends_on('mpi', when='+mpi')
     depends_on("python", when="+python")
+    depends_on('amgx', when='+amgx')
 
     def cmake_args(self):
         spec = self.spec
-        args = [
-            self.define_from_variant("DUSE_OPENCL", "opencl"),
-            self.define_from_variant("DUSE_GPU_BRIDGE", "gpubridge"),
-            self.define_from_variant("DWITH_NATIVE", "native"),
-        ]
+        args = []
+
+        if "+gpu_istl" in spec:
+            args.append("-DUSE_OPENCL=OFF")
+            args.append("-DUSE_GPU_BRIDGE=OFF")
+            args.append("-DWITH_NATIVE=OFF")
+            args.append("-DWITH_NDEBUG=ON")
+        else:
+            args.append(self.define_from_variant("DUSE_OPENCL", "opencl"),)
+        
+
+        # args = [
+            
+        #     self.define_from_variant("DUSE_GPU_BRIDGE", "gpubridge"),
+        #     self.define_from_variant("DWITH_NATIVE", "native"),
+        #     self.define_from_variant("USE_AMGX", "amgx"),
+
+        #     self.define_from_variant("USE_CHOW_PATEL_ILU", "chow_patel_ilu"),
+        #     self.define_from_variant("USE_CHOW_PATEL_ILU_GPU", "chow_patel_ilu_gpu"),
+        #     self.define_from_variant("USE_CHOW_PATEL_ILU_GPU_PARALLEL", "chow_patel_ilu_gpu_parallel"),
+        # ]
 
         # if spec.satisfies("+cuda"):
         #     # Set up the CUDA macros needed by the build
