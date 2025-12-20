@@ -105,20 +105,20 @@ class OpmSimulators(CMakePackage, CudaPackage):
     def cmake_args(self):
         args = []            
         if self.spec.satisfies("+gpu_istl"):
-            args.append("-DUSE_OPENCL=OFF")
-            args.append("-DUSE_GPU_BRIDGE=OFF")
-            args.append("-DWITH_NDEBUG=ON")
-            args.append("-DWITH_NATIVE=OFF")
-            
+            args.append(self.define("USE_OPENCL", False)) 
+            args.append(self.define("USE_GPU_BRIDGE", False))
+            args.append(self.define("WITH_NDEBUG", True))
+            args.append(self.define("WITH_NATIVE", False))
+
             if self.spec.satisfies("+hip"):
-                args.append("-DCONVERT_CUDA_TO_HIP=ON")
-                args.append("-DCMAKE_HIP_PLATFORM=amd")
-                args.append("-DUSE_HIP=1")
+                args.append(self.define("CONVERT_CUDA_TO_HIP", True))
+                args.append(self.define("CMAKE_HIP_PLATFORM", "amd"))
+                args.append(self.define("USE_HIP", 1))
         else:
             if self.spec.satisfies("+python"):
-                args.append("-DOPM_ENABLE_PYTHON=ON")
-                args.append("-DOPM_ENABLE_PYTHON_TESTS=ON")
-                args.append("-DOPM_INSTALL_PYTHON=ON")
+                args.append(self.define("OPM_ENABLE_PYTHON", True))
+                args.append(self.define("OPM_ENABLE_PYTHON_TESTS", True))
+                args.append(self.define("OPM_INSTALL_PYTHON", True))
             
             args.append(self.define_from_variant("USE_CHOW_PATEL_ILU", "chow_patel_ilu"))
             args.append(self.define_from_variant("USE_CHOW_PATEL_ILU_GPU", "chow_patel_ilu_gpu"))
@@ -144,5 +144,5 @@ class OpmSimulators(CMakePackage, CudaPackage):
         # else:
         #     # Ensure build with CUDA is disabled
         #     args.append("-DWITH_CUDA=OFF")
-
+        print(args)
         return args
