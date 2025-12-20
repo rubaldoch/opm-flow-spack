@@ -29,13 +29,14 @@ class OpmSimulators(CMakePackage, CudaPackage):
     """OPM Flow and experimental simulators, including components such as well models etc."""
 
     homepage = "https://opm-project.org"
-    url = "https://github.com/OPM/opm-simulators/archive/refs/tags/release/2025.04/final.tar.gz"
+    url = "https://github.com/OPM/opm-simulators/archive/refs/tags/release/2025.10/final.tar.gz"
     git = "https://github.com/OPM/opm-simulators.git"
 
     maintainers("rubaldoch")
     
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
+    version("2025.10", sha256="b64fcd186a82ca0c73ed16219b4d0eea187f0b19f30abaf479a2ab953c55d1bd")
     version("2025.04", sha256="02aa85b82c843ecde2640b6e9bdbfa1a5026fd46ee1fb564284784e5c359d233")
 
     # Configuration variants
@@ -48,19 +49,22 @@ class OpmSimulators(CMakePackage, CudaPackage):
     
     variant("mpi", default=True, description="Build with MPI.")
     variant("cuda", default=True, description="Build with CUDA.")
-    variant("python", default=False, description="Compile with Python bindings")
+
+    variant("python", default=False, description="Compile with Python bindings and tests.")
     variant("chow_patel_ilu", default=False, description="Build with Chow-Patel ILU")
     variant("chow_patel_ilu_gpu", default=False, description="Build with Chow-Patel ILU on GPU.")
     variant("chow_patel_ilu_gpu_parallel", default=False, description="Try to use more parallelism on the GPU during Chow-Patel ILU decomposition?")
-    variant("build_flow_alu_grid", default=False, description="Build flow blackoil with alu grid.")
+    variant("alu_grid", default=False, description="Build flow blackoil with alu grid.")
     variant("damaris", default=False, description="Use the Damaris library for asynchronous I/O.")
-    variant("gpu_bridge", default=True, description="Build with GPU bridge (GPU/AMGCL solvers).")
+    
+    variant("gpu_bridge", default=True, description="Enable the GPU bridge (GPU/AMGCL solvers).")
     variant("tracy_profiling", default=False, description="Enable tracy profiling.")
     variant("hip", default=False, description="Convert CUDA code to HIP (to run on AMD cards).")
     variant("amgx", default=False, description= "Build with AMGX  support")
     variant("hypre", default=False, description="Build with HYPRE library for linear solvers.")
     variant("opencl", default=True, description="Build with OpenCL support.")
-    variant("gpu_istl", default=True, description="Build with GPU bridge (GPU/AMGCL solvers).")
+    
+    variant("gpu_istl", default=False, description="Enable the GPU ISTL solvers.")
     variant("doc", default=False, description="Compile with documentation")
     
 
@@ -74,14 +78,20 @@ class OpmSimulators(CMakePackage, CudaPackage):
     depends_on(Boost.with_default_variants)
     depends_on("suite-sparse")
 
-    depends_on("dune-common")
-    depends_on("dune-istl")
-    depends_on("dune-grid")
-    depends_on("dune-geometry")
+    depends_on("dune-common@2.10.0", when="@2025.04:")
+    depends_on("dune-istl@2.10.0", when="@2025.04:")
+    depends_on("dune-grid@2.10.0", when="@2025.04:")
+    depends_on("dune-geometry@2.10.0", when="@2025.04:")
 
-    depends_on("opm-common")
-    depends_on("opm-grid")
-  
+    # OPM dependent modules
+    opm_versions = [
+        "2025.04",
+        "2025.10",
+    ]
+    for v in opm_versions:
+        depends_on(f"opm-common@{v}", when=f"@{v}")
+        depends_on(f"opm-grid@{v}", when=f"@{v}")
+
     # Optional dependencies
     depends_on("mpi", when="+mpi")
     depends_on("python", when="+python")
@@ -93,11 +103,12 @@ class OpmSimulators(CMakePackage, CudaPackage):
     depends_on("amgx", when="+amgx")
 
     def cmake_args(self):
-        args = []
+        args = []            
         if self.spec.satisfies("+gpu_istl"):
             args.append("-DUSE_OPENCL=OFF")
             args.append("-DUSE_GPU_BRIDGE=OFF")
             args.append("-DWITH_NDEBUG=ON")
+            args.append("-DWITH_NATIVE=OFF")
             
             if self.spec.satisfies("+hip"):
                 args.append("-DCONVERT_CUDA_TO_HIP=ON")
@@ -113,7 +124,7 @@ class OpmSimulators(CMakePackage, CudaPackage):
             args.append(self.define_from_variant("USE_CHOW_PATEL_ILU_GPU", "chow_patel_ilu_gpu"))
             args.append(self.define_from_variant("USE_CHOW_PATEL_ILU_GPU_PARALLEL", "chow_patel_ilu_gpu_parallel"))
             
-            args.append(self.define_from_variant("BUILD_FLOW_ALU_GRID", "build_flow_alu_grid"))
+            args.append(self.define_from_variant("BUILD_FLOW_ALU_GRID", "alu_grid"))
             args.append(self.define_from_variant("USE_DAMARIS_LIB", "damaris"))
             args.append(self.define_from_variant("USE_GPU_BRIDGE", "gpu_bridge"))
             args.append(self.define_from_variant("USE_TRACY_PROFILER", "tracy_profiling"))
@@ -123,15 +134,15 @@ class OpmSimulators(CMakePackage, CudaPackage):
             args.append(self.define_from_variant("USE_HYPRE", "hypre"))
             args.append(self.define_from_variant("USE_OPENCL", "opencl"))
 
-        if self.spec.satisfies("+cuda"):
-            # Set up the CUDA macros needed by the build
-            args.append("-DWITH_CUDA=ON")
-            cuda_arch_list = self.spec.variants["cuda_arch"].value
-            cuda_arch = cuda_arch_list[0]
-            if cuda_arch != "none":
-                args.append(f"-DCUDA_FLAGS=-arch=sm_{cuda_arch}")
-        else:
-            # Ensure build with CUDA is disabled
-            args.append("-DWITH_CUDA=OFF")
+        # if self.spec.satisfies("+cuda"):
+        #     # Set up the CUDA macros needed by the build
+        #     args.append("-DWITH_CUDA=ON")
+        #     cuda_arch_list = self.spec.variants["cuda_arch"].value
+        #     cuda_arch = cuda_arch_list[0]
+        #     if cuda_arch != "none":
+        #         args.append(f"-DCUDA_FLAGS=-arch=sm_{cuda_arch}")
+        # else:
+        #     # Ensure build with CUDA is disabled
+        #     args.append("-DWITH_CUDA=OFF")
 
         return args

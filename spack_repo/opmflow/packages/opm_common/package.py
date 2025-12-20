@@ -28,12 +28,13 @@ class OpmCommon(CMakePackage):
     """Tools for Eclipse reservoir simulation files."""
 
     homepage = "https://opm-project.org"
-    url = "https://github.com/OPM/opm-common/archive/refs/tags/release/2025.04/final.tar.gz"
+    url = "https://github.com/OPM/opm-common/archive/refs/tags/release/2025.10/final.tar.gz"
 
     maintainers("rubaldoch")
 
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
+    version("2025.10", sha256="adb94a59e73d494cdf3c757171b309d0e19b87e482363ac095a1da2b51263342")
     version("2025.04", sha256="47dd88683babe0dd7cf7309d77a0499e4033cb0d2741d9a5ff9d3d7ac23b9f3d")
     
     # Configuration variants

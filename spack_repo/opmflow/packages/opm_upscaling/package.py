@@ -28,12 +28,13 @@ class OpmUpscaling(CMakePackage):
     """Single-phase and steady-state upscaling methods."""
 
     homepage = "https://opm-project.org"
-    url = "https://github.com/OPM/opm-upscaling/archive/refs/tags/release/2025.04/final.tar.gz"
+    url = "https://github.com/OPM/opm-upscaling/archive/refs/tags/release/2025.10/final.tar.gz"
 
     maintainers("rubaldoch")
     
     license("GPL-3.0-or-later", checked_by="rubaldoch")
 
+    version("2025.10", sha256="5ade9693c7d3d1e90584bc77045179e1eca2e59aef2cfebafd999e8615b73ff2")
     version("2025.04", sha256="8ba85d00606feb793ce23c77fde798f907ab72dc31d309c22cc0f0e135e162e2")
 
     # Define dependencies
